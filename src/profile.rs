@@ -91,13 +91,15 @@ impl From<XRandrOutput> for Profile {
 
 impl Profile {
     pub fn apply(&self) {
+        let mut args = vec![];
         for (k, device) in &self.connected_devices {
             //println!("{}: {:?}", k, device);
             println!(
                 "Applying device {} with resolution: {:?}, offset: {:?}, primary: {}, refresh_rate: {}",
                 k.green(), device.resolution, device.offset, device.primary, device.refresh_rate
             );
-            let mut args = vec!["--output".to_string(), k.to_string()];
+            args.push("--output".to_string());
+            args.push(k.to_string());
             if device.primary {
                 args.push("--primary".to_string());
             }
@@ -113,24 +115,17 @@ impl Profile {
                 args.push("--rate".to_string());
                 args.push(format!("{}", device.refresh_rate));
             }
-            std::process::Command::new("xrandr")
-                .args(args)
-                .output()
-                .unwrap();
-
-            std::thread::sleep(std::time::Duration::from_millis(500));
         }
 
         for k in &self.off_devices {
             println!("Disabling device {}", k);
-            std::process::Command::new("xrandr")
-                .arg("--output")
-                .arg(k)
-                .arg("--off")
-                .output()
-                .unwrap();
-
-            std::thread::sleep(std::time::Duration::from_millis(500));
+            args.push("--output".to_string());
+            args.push(k.to_string());
+            args.push("--off".to_string());
         }
+        std::process::Command::new("xrandr")
+            .args(&args)
+            .output()
+            .unwrap();
     }
 }
