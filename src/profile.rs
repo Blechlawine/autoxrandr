@@ -1,9 +1,13 @@
+/*
+    Copyright (C) 2024 Blechlawine
+    GNU General Public License v3.0+ ( see LICENSE or https://www.gnu.org/licenses/gpl-3.0.txt )
+*/
 use std::{collections::HashMap, path::Path, process::Command};
 
 use owo_colors::OwoColorize;
 use serde::{Deserialize, Serialize};
 
-use crate::xrandr_output::{parse_active_monitors, ConnectionState, XRandrOutput};
+use crate::xrandr_output::{parse_active_monitors, XRandrOutput};
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct Profile {
