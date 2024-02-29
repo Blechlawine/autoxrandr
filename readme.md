@@ -26,3 +26,8 @@ This command deletes a previously saved profile.
 ```
 autoxrandr remove <profile_name>
 ```
+
+## Roadmap
+I might implement these things at some point
+
+- [ ] Automatically detect which monitors are connected and apply profile
