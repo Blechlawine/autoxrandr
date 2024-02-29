@@ -1,15 +1,18 @@
 use nom::{
     branch::alt,
     bytes::complete::tag,
-    character::complete::{
-        digit1, line_ending, multispace0, none_of, not_line_ending, space0, u32,
-    },
+    character::complete::{digit1, line_ending, multispace0, none_of, not_line_ending, u32},
     combinator::{map, map_res, opt},
     multi::{many1, separated_list0},
     sequence::tuple,
     IResult,
 };
 use serde::{Deserialize, Serialize};
+
+pub fn parse(xrandr_output: &str) -> XRandrOutput {
+    let (_, xrandr_output) = XRandrOutput::parse(xrandr_output.as_bytes()).unwrap();
+    xrandr_output
+}
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct XRandrOutput {
@@ -32,17 +35,17 @@ impl XRandrOutput {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct DisplayDevice {
     /// is the display connected or not
-    state: ConnectionState,
+    pub state: ConnectionState,
     /// the resolution of the display
-    resolution: Option<Resolution>,
+    pub resolution: Option<Resolution>,
     /// the position of the display
-    offset: Option<Offset>,
+    pub offset: Option<Offset>,
     /// is the display primary or not
-    primary: bool,
+    pub primary: bool,
     /// Which connector is the display connected to
-    connector: String,
+    pub connector: String,
     /// The capabilities of the display
-    capabilities: Vec<Capability>,
+    pub capabilities: Vec<Capability>,
 }
 
 type Offset = (u32, u32);
@@ -91,9 +94,9 @@ impl DisplayDevice {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-struct Capability {
+pub struct Capability {
     resolution: Resolution,
-    refresh_rates: Vec<RefreshRate>,
+    pub refresh_rates: Vec<RefreshRate>,
 }
 
 impl Capability {
@@ -118,7 +121,7 @@ impl Capability {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct RefreshRate {
     pub clock: f32,
-    current: bool,
+    pub current: bool,
     preferred: bool,
 }
 
@@ -161,7 +164,7 @@ impl RefreshRate {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Eq, PartialEq, Hash)]
 pub enum ConnectionState {
     Connected,
     Disconnected,
@@ -178,4 +181,32 @@ impl ConnectionState {
             },
         )(input)
     }
+}
+
+pub fn parse_active_monitors(input: &[u8]) -> IResult<&[u8], Vec<String>> {
+    map(
+        tuple((
+            not_line_ending,
+            line_ending,
+            separated_list0(
+                line_ending,
+                tuple((
+                    multispace0,
+                    u32,
+                    tag(":"),
+                    multispace0,
+                    opt(tag("+")),
+                    opt(tag("*")),
+                    parse_connector,
+                    not_line_ending,
+                )),
+            ),
+        )),
+        |(_, _, monitors)| {
+            monitors
+                .into_iter()
+                .map(|(_, _, _, _, _, _, connector, _)| connector)
+                .collect()
+        },
+    )(input)
 }
