@@ -2,6 +2,13 @@
 
 Autoxrandr is a small utility to automatically set xrandr settings based on saved monitor configurations.
 
+## Installation
+
+### Compile from source
+> Prerequisites: You need to have cargo and rust installed
+1. Clone this repository
+2. `cargo install --path .`
+
 ## Usage
 
 ### Save profile
